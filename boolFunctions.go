@@ -76,12 +76,11 @@ func IsIPv4AddressInUpstreamTargetList(ipAddress string, upstreamName string) (b
 		}
 		return false, nil
 	case 404:
-		logger.WithField("upstream", upstreamName).Warning("The supplied upstream is not configured on the gateway")
-		return false, nil
+		logger.WithField("upstream", upstreamName).Error("The supplied upstream is not configured on the gateway")
+		return false, errors.New("upstream not found")
 	default:
 		logger.WithField("upstream", upstreamName).WithField("httpCode",
 			response.StatusCode).Error("The gateway responded with an unexpected status code")
 		return false, errors.New("unexpected status code")
 	}
-
 }
