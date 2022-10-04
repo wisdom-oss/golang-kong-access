@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 )
 
 /*
@@ -38,9 +40,11 @@ func CreateNewUpstream(upstreamName string) (bool, error) {
 			"a upstream with this name already exists in the gateway")
 		return false, errors.New("upstream already exists")
 	default:
-		logger.WithField("httpCode", response.StatusCode).WithField("httpStatus",
-			response.Status).Error("the gateway sent a unexpected status code")
+		logger.WithFields(log.Fields{
+			"upstream":   upstreamName,
+			"httpCode":   response.StatusCode,
+			"httpStatus": response.Status,
+		}).Error("The gateway responded with an unexpected status code")
 		return false, errors.New("unexpected http status")
 	}
-
 }
