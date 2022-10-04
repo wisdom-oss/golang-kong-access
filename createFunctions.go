@@ -48,3 +48,42 @@ func CreateNewUpstream(upstreamName string) (bool, error) {
 		return false, errors.New("unexpected http status")
 	}
 }
+
+/*
+CreateTargetInUpstream creates a new target with the supplied targetAddress on the supplied upstream
+*/
+func CreateTargetInUpstream(targetAddress string, upstreamName string) (bool, error) {
+	if gatewayAPIURL == "" {
+		return false, errors.New("the connection to the api gateway was not set up")
+	}
+	if targetAddress == "" || strings.TrimSpace(targetAddress) == "" {
+		return false, errors.New("empty targetAddress supplied")
+	}
+	if upstreamName == "" || strings.TrimSpace(upstreamName) == "" {
+		return false, errors.New("empty upstreamName supplied")
+	}
+	// Build the request body
+	requestBody := url.Values{}
+	requestBody.Set("targetAddress", targetAddress)
+
+	// Send the request body to the gateway
+	response, err := http.PostForm(gatewayAPIURL+"/upstreams/"+upstreamName+"/targets", requestBody)
+	if err != nil {
+		return false, err
+	}
+
+	switch response.StatusCode {
+	case 201:
+		return true, nil
+	case 400:
+		logger.WithField("httpCode", response.StatusCode).Error("The request was malformed and could no be acted upon")
+		return false, errors.New("bad request made")
+	case 409:
+		logger.WithField("httpCode", response.StatusCode).Error("The same target already exists in the upstream")
+		return false, errors.New("target already exists in the upstream")
+	default:
+		logger.WithField("httpCode", response.StatusCode).WithField("httpStatus",
+			response.Status).Error("Unexpected http status received in response")
+		return false, errors.New("unexpected http status")
+	}
+}

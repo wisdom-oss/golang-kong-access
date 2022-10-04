@@ -18,6 +18,9 @@ func IsUpstreamSetup(upstreamName string) (bool, error) {
 	if gatewayAPIURL == "" {
 		return false, errors.New("the connection to the api gateway was not set up")
 	}
+	if upstreamName == "" || strings.TrimSpace(upstreamName) == "" {
+		return false, errors.New("empty upstreamName supplied")
+	}
 	logger.WithField("upstream", upstreamName).Debug("Checking if the upstream is configured on the gateway")
 	// Make a http request to the gateway
 	response, err := http.Get(gatewayAPIURL + "/upstreams/" + upstreamName)
@@ -55,6 +58,9 @@ func IsIPv4AddressInUpstreamTargetList(ipAddress string, upstreamName string) (b
 	}
 	if !match {
 		return false, errors.New("invalid ipv4 address")
+	}
+	if upstreamName == "" || strings.TrimSpace(upstreamName) == "" {
+		return false, errors.New("empty upstreamName supplied")
 	}
 	//Request the targets of the upstream
 	response, err := http.Get(gatewayAPIURL + "/upstreams/" + upstreamName + "/targets")
