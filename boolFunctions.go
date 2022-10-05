@@ -70,6 +70,7 @@ func IsIPv4AddressInUpstreamTargetList(ipAddress string, upstreamName string) (b
 	// Check the status code of the response
 	switch response.StatusCode {
 	case 200:
+		logger.WithError(err).Error("Unable to check if the ip address is listed in upstream targets")
 		targetListResponse := &TargetListResponse{}
 		jsonParseError := json.NewDecoder(response.Body).Decode(targetListResponse)
 		if jsonParseError != nil {
@@ -86,6 +87,32 @@ func IsIPv4AddressInUpstreamTargetList(ipAddress string, upstreamName string) (b
 		return false, errors.New("upstream not found")
 	default:
 		logger.WithField("upstream", upstreamName).WithField("httpCode",
+			response.StatusCode).Error("The gateway responded with an unexpected status code")
+		return false, errors.New("unexpected status code")
+	}
+}
+
+func IsServiceSetUp(serviceName string) (bool, error) {
+	if gatewayAPIURL == "" {
+		return false, errors.New("the connection to the api gateway was not set up")
+	}
+	if serviceName == "" || strings.TrimSpace(serviceName) == "" {
+		return false, errors.New("empty service name supplied")
+	}
+	response, err := http.Get(gatewayAPIURL + "/services/" + serviceName)
+	if err != nil {
+		logger.WithError(err).Error("Unable to check if the service is configured")
+		return false, err
+	}
+	// Check the status code of the response
+	switch response.StatusCode {
+	case 200:
+		return false, nil
+	case 404:
+		logger.WithField("serviceName", serviceName).Error("The supplied service is not configured on the gateway")
+		return false, nil
+	default:
+		logger.WithField("serviceName", serviceName).WithField("httpCode",
 			response.StatusCode).Error("The gateway responded with an unexpected status code")
 		return false, errors.New("unexpected status code")
 	}
