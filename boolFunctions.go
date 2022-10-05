@@ -9,11 +9,11 @@ import (
 )
 
 /*
-IsUpstreamSetup
+IsUpstreamSetUp
 
 Check if an upstream with the name is configured in the Kong API Gateway
 */
-func IsUpstreamSetup(upstreamName string) (bool, error) {
+func IsUpstreamSetUp(upstreamName string) (bool, error) {
 	// check if the gateway connection was set up
 	if gatewayAPIURL == "" {
 		return false, errors.New("the connection to the api gateway was not set up")
