@@ -160,7 +160,7 @@ func ServiceHasRouteSetUp(serviceName string) (bool, error) {
 	}
 	routeConfigurationList, err := ReadRouteConfigurationList(serviceName)
 	if err != nil {
-		logger.WithError(err).Error("The route configuration list could not be read")
+		logger.WithError(err).Error("An error occurred while reading the route configuration list")
 		return false, err
 	}
 	return len(routeConfigurationList.RouteConfigurations) > 0, nil
