@@ -4,3 +4,8 @@ type TargetListResponse struct {
 	Targets    []UpstreamTargetInformation `json:"data"`
 	NextTarget string                      `json:"next"`
 }
+
+type RouteConfigurationList struct {
+	RouteConfigurations []RouteConfiguration `json:"data"`
+	Next                string               `json:"next"`
+}
