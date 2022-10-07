@@ -193,3 +193,30 @@ func ServiceHasRouteWithPathSetUp(serviceName string, path string) (bool, error)
 	}
 	return false, nil
 }
+
+/*
+ServiceHasPlugin checks if a service has a plugin set up with the supplied name
+*/
+func ServiceHasPlugin(serviceName string, pluginName string) (bool, error) {
+	if gatewayAPIURL == "" {
+		return false, errors.New("the connection to the api gateway was not set up")
+	}
+	if serviceName == "" || strings.TrimSpace(serviceName) == "" {
+		return false, errors.New("empty service name supplied")
+	}
+	if pluginName == "" || strings.TrimSpace(pluginName) == "" {
+		return false, errors.New("empty plugin name supplied")
+	}
+	pluginList, err := ReadServicePlugins(serviceName)
+	if err != nil {
+		logger.WithError(err).Error("An error occurred while reading the plugin list")
+		return false, err
+	}
+
+	for _, plugin := range pluginList.Plugins {
+		if plugin.Name == pluginName {
+			return true, nil
+		}
+	}
+	return false, nil
+}
