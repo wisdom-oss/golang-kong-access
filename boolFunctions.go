@@ -165,3 +165,31 @@ func ServiceHasRouteSetUp(serviceName string) (bool, error) {
 	}
 	return len(routeConfigurationList.RouteConfigurations) > 0, nil
 }
+
+/*
+ServiceHasRouteWithPathSetUp checks if the service has a route set up matching the supplied path
+HINT: You need to include a leading slash in the path
+*/
+func ServiceHasRouteWithPathSetUp(serviceName string, path string) (bool, error) {
+	if gatewayAPIURL == "" {
+		return false, errors.New("the connection to the api gateway was not set up")
+	}
+	if serviceName == "" || strings.TrimSpace(serviceName) == "" {
+		return false, errors.New("empty service name supplied")
+	}
+	if path == "" || strings.TrimSpace(path) == "" {
+		return false, errors.New("empty path supplied")
+	}
+
+	routeConfigurationList, err := ReadRouteConfigurationList(serviceName)
+	if err != nil {
+		logger.WithError(err).Error("An error occurred while reading the route configuration list")
+		return false, err
+	}
+	for _, routeConfiguration := range routeConfigurationList.RouteConfigurations {
+		if stringArrayContains(routeConfiguration.Paths, path) {
+			return true, nil
+		}
+	}
+	return false, nil
+}
