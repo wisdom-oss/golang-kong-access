@@ -94,8 +94,7 @@ func IsIPv4AddressInUpstreamTargetList(ipAddress string, upstreamName string) (b
 
 /*
 IsServiceSetUp checks if a service with the supplied service name exists in the api gateway. The function does not check
-if the service is correctly configured. For checking the configuration please use the read function and manually
-check if the service has the correct attributes
+if the service is correctly configured. For checking the configuration please use the ServiceHasUpstream function
 */
 func IsServiceSetUp(serviceName string) (bool, error) {
 	if gatewayAPIURL == "" {
@@ -121,4 +120,29 @@ func IsServiceSetUp(serviceName string) (bool, error) {
 			response.StatusCode).Error("The gateway responded with an unexpected status code")
 		return false, errors.New("unexpected status code")
 	}
+}
+
+/*
+ServiceHasUpstream tests if the supplied service name's configuration has the upstream in its host field
+*/
+func ServiceHasUpstream(serviceName string, upstreamName string) (bool, error) {
+	if gatewayAPIURL == "" {
+		return false, errors.New("the connection to the api gateway was not set up")
+	}
+	if serviceName == "" || strings.TrimSpace(serviceName) == "" {
+		return false, errors.New("empty service name supplied")
+	}
+	if upstreamName == "" || strings.TrimSpace(upstreamName) == "" {
+		return false, errors.New("empty upstream name supplied")
+	}
+
+	// Use the read function to access the service configuration
+	serviceConfiguration, err := ReadServiceConfiguration(serviceName)
+	if err != nil {
+		logger.WithError(err).Error("An error occurred while reading the service configuration from the api gateway")
+		return false, err
+	}
+
+	// Now access the service configuration and check the host entry
+	return serviceConfiguration.Host == upstreamName, nil
 }
