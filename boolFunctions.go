@@ -92,6 +92,11 @@ func IsIPv4AddressInUpstreamTargetList(ipAddress string, upstreamName string) (b
 	}
 }
 
+/*
+IsServiceSetUp checks if a service with the supplied service name exists in the api gateway. The function does not check
+if the service is correctly configured. For checking the configuration please use the read function and manually
+check if the service has the correct attributes
+*/
 func IsServiceSetUp(serviceName string) (bool, error) {
 	if gatewayAPIURL == "" {
 		return false, errors.New("the connection to the api gateway was not set up")
