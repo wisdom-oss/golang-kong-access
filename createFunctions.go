@@ -87,3 +87,42 @@ func CreateTargetInUpstream(targetAddress string, upstreamName string) (bool, er
 		return false, errors.New("unexpected http status")
 	}
 }
+
+/*
+CreateService creates a new service object which uses the supplied upstream as host to which the requests are routed
+*/
+func CreateService(serviceName string, upstreamName string) (bool, error) {
+	if gatewayAPIURL == "" {
+		return false, errors.New("the connection to the api gateway was not set up")
+	}
+	if serviceName == "" || strings.TrimSpace(serviceName) == "" {
+		return false, errors.New("empty serviceName supplied")
+	}
+
+	// Build the request body
+	requestBody := url.Values{}
+	requestBody.Set("name", serviceName)
+	requestBody.Set("host", upstreamName)
+
+	// Make the request to the gateway
+	response, err := http.PostForm(gatewayAPIURL+"/services", requestBody)
+	if err != nil {
+		logger.WithError(err).Error("An error occurred while sending the request to the api gateway")
+		return false, err
+	}
+	switch response.StatusCode {
+	case 201:
+		return true, nil
+	case 400:
+		logger.WithField("httpCode", response.StatusCode).Error("A bad request was made to the api gateway")
+		return false, errors.New("bad request sent to the gateway")
+	case 409:
+		logger.WithField("httpCode", response.StatusCode).Error(
+			"A service with the same name already exists in the api gateway")
+		return false, errors.New("service already exists")
+	default:
+		logger.WithFields(log.Fields{"httpCode": response.StatusCode,
+			"httpStatus": response.Status}).Error("An unexpected response code was received from the api gateway")
+		return false, errors.New("unexpected response code")
+	}
+}
