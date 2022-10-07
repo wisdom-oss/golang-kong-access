@@ -111,7 +111,7 @@ func IsServiceSetUp(serviceName string) (bool, error) {
 	// Check the status code of the response
 	switch response.StatusCode {
 	case 200:
-		return false, nil
+		return true, nil
 	case 404:
 		logger.WithField("serviceName", serviceName).Error("The supplied service is not configured on the gateway")
 		return false, nil
