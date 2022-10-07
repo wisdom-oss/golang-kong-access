@@ -88,3 +88,37 @@ func ReadServiceConfiguration(serviceName string) (*ServiceConfiguration, error)
 		return nil, errors.New("unexpected response code")
 	}
 }
+
+func ReadRouteConfigurationList(serviceName string) (*RouteConfigurationList, error) {
+	if gatewayAPIURL == "" {
+		return nil, errors.New("the connection to the api gateway was not set up")
+	}
+	if serviceName == "" || strings.TrimSpace(serviceName) == "" {
+		return nil, errors.New("empty serviceName supplied")
+	}
+	// Make the request to the api gateway
+	response, err := http.Get(gatewayAPIURL + "/services/" + serviceName + "/routes")
+	if err != nil {
+		logger.WithError(err).Error("An error occurred while reading the routes from the service")
+		return nil, err
+	}
+
+	switch response.StatusCode {
+	case 200:
+		routeConfigurationList := &RouteConfigurationList{}
+		jsonDecodeError := json.NewDecoder(response.Body).Decode(routeConfigurationList)
+		if jsonDecodeError != nil {
+			logger.WithError(jsonDecodeError).Error("Unable to parse the response sent by the api gateway")
+			return nil, jsonDecodeError
+		}
+		return routeConfigurationList, nil
+	case 404:
+		logger.WithField("httpCode", response.StatusCode).Error(
+			"The supplied service name is not present in the api gateway")
+		return nil, errors.New("service not found")
+	default:
+		logger.WithFields(log.Fields{"httpCode": response.StatusCode,
+			"httpStatus": response.Status}).Error("An unexpected response code was received from the api gateway")
+		return nil, errors.New("unexpected response code")
+	}
+}
