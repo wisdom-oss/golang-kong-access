@@ -9,3 +9,8 @@ type RouteConfigurationList struct {
 	RouteConfigurations []RouteConfiguration `json:"data"`
 	Next                string               `json:"next"`
 }
+
+type PluginList struct {
+	Plugins []PluginInformation `json:"data"`
+	Next    string              `json:"next"`
+}
