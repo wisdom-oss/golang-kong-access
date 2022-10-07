@@ -126,3 +126,58 @@ func CreateService(serviceName string, upstreamName string) (bool, error) {
 		return false, errors.New("unexpected response code")
 	}
 }
+
+/*
+AddPluginToService adds a new plugin to the supplied service with the supplied configuration.
+The configuration is required by default. You may disable this by passing true to configurationOptional
+*/
+func AddPluginToService(serviceName string, pluginName string, pluginConfiguration url.Values) (bool, error) {
+	// This is required to us
+	if gatewayAPIURL == "" {
+		return false, errors.New("the connection to the api gateway was not set up")
+	}
+	if serviceName == "" || strings.TrimSpace(serviceName) == "" {
+		return false, errors.New("empty service name supplied")
+	}
+	if pluginName == "" || strings.TrimSpace(pluginName) == "" {
+		return false, errors.New("empty plugin name supplied")
+	}
+
+	// Build the request body
+	requestBody := url.Values{}
+	requestBody.Set("name", pluginName)
+
+	// Iterate through the plugin configuration and prepend every configuration option with "config."
+	for configurationKey, configurationValueArray := range pluginConfiguration {
+		for _, configurationValue := range configurationValueArray {
+			requestBody.Add("config."+configurationKey, configurationValue)
+		}
+	}
+
+	// Send a request to the api gateway
+	response, err := http.PostForm(gatewayAPIURL+"/services/"+serviceName+"/plugins", requestBody)
+	if err != nil {
+		logger.WithError(err).Error("An error occurred while sending the request to the api gateway")
+		return false, err
+	}
+	switch response.StatusCode {
+	case 201:
+		pluginConfigured, err := ServiceHasPlugin(serviceName, pluginName)
+		if err != nil {
+			logger.WithError(err).Error("An error occurred while checking the plugin creation")
+		}
+		return pluginConfigured, nil
+	case 400:
+		logger.WithField("httpCode", response.StatusCode).Error("A bad request was made to the api gateway")
+		return false, errors.New("bad request sent to the gateway")
+	case 409:
+		logger.WithField("httpCode", response.StatusCode).Error(
+			"The same plugin exists for this service")
+		return false, errors.New("plugin already exists")
+	default:
+		logger.WithFields(log.Fields{"httpCode": response.StatusCode,
+			"httpStatus": response.Status}).Error("An unexpected response code was received from the api gateway")
+		return false, errors.New("unexpected response code")
+	}
+
+}
