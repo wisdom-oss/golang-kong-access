@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"regexp"
 	"strings"
 )
 
@@ -44,20 +43,12 @@ func IsUpstreamSetUp(upstreamName string) (bool, error) {
 	}
 }
 
-func IsIPv4AddressInUpstreamTargetList(ipAddress string, upstreamName string) (bool, error) {
+func IsAddressInUpstreamTargetList(targetAddress string, upstreamName string) (bool, error) {
 	if gatewayAPIURL == "" {
 		return false, errors.New("the connection to the api gateway was not set up")
 	}
-	if ipAddress == "" || strings.TrimSpace(ipAddress) == "" {
-		return false, errors.New("empty ip address")
-	}
-	// Check if the supplied ip address is an ipv4 address
-	match, regexError := regexp.MatchString("(?:[0-9]{1,3}\\.){3}[0-9]{1,3}", ipAddress)
-	if regexError != nil {
-		return false, regexError
-	}
-	if !match {
-		return false, errors.New("invalid ipv4 address")
+	if targetAddress == "" || strings.TrimSpace(targetAddress) == "" {
+		return false, errors.New("empty target address")
 	}
 	if upstreamName == "" || strings.TrimSpace(upstreamName) == "" {
 		return false, errors.New("empty upstreamName supplied")
@@ -77,7 +68,7 @@ func IsIPv4AddressInUpstreamTargetList(ipAddress string, upstreamName string) (b
 			return false, jsonParseError
 		}
 		for _, target := range targetListResponse.Targets {
-			if target.Address == ipAddress {
+			if target.Address == targetAddress {
 				return true, nil
 			}
 		}
