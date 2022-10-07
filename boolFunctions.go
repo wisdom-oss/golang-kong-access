@@ -146,3 +146,22 @@ func ServiceHasUpstream(serviceName string, upstreamName string) (bool, error) {
 	// Now access the service configuration and check the host entry
 	return serviceConfiguration.Host == upstreamName, nil
 }
+
+/*
+ServiceHasRouteSetUp checks if the service has any routes set up.
+To check for a route with a path use ServiceHasRouteWithPathSetUp
+*/
+func ServiceHasRouteSetUp(serviceName string) (bool, error) {
+	if gatewayAPIURL == "" {
+		return false, errors.New("the connection to the api gateway was not set up")
+	}
+	if serviceName == "" || strings.TrimSpace(serviceName) == "" {
+		return false, errors.New("empty service name supplied")
+	}
+	routeConfigurationList, err := ReadRouteConfigurationList(serviceName)
+	if err != nil {
+		logger.WithError(err).Error("The route configuration list could not be read")
+		return false, err
+	}
+	return len(routeConfigurationList.RouteConfigurations) > 0, nil
+}
