@@ -127,6 +127,55 @@ func CreateService(serviceName string, upstreamName string) (bool, error) {
 	}
 }
 
+func CreateNewRoute(serviceName string, path string) (bool, error) {
+	if gatewayAPIURL == "" {
+		return false, errors.New("the connection to the api gateway was not set up")
+	}
+	if serviceName == "" || strings.TrimSpace(serviceName) == "" {
+		return false, errors.New("empty serviceName supplied")
+	}
+	if path == "" || strings.TrimSpace(path) == "" {
+		return false, errors.New("empty path supplied")
+	}
+
+	// Build the request body
+	requestBody := url.Values{}
+	requestBody.Set("paths", path)
+	requestBody.Set("protocols", "http")
+
+	// Send the request to the api gateway
+	response, err := http.PostForm(gatewayAPIURL+"/services/"+serviceName+"/routes", requestBody)
+	if err != nil {
+		logger.WithError(err).Error("An error occurred while sending the request to the api gateway")
+		return false, err
+	}
+
+	switch response.StatusCode {
+	case 200, 201:
+		routeCreated, err := ServiceHasRouteWithPathSetUp(serviceName, path)
+		if err != nil {
+			logger.WithError(err).Error("An error occurred while checking if the route has been created")
+			return false, err
+		}
+		if !routeCreated {
+			logger.Error("The route has not been created")
+			return false, errors.New("route not found in test")
+		}
+		return true, nil
+	case 400:
+		logger.WithField("httpCode", response.StatusCode).Error("A bad request was made to the api gateway")
+		return false, errors.New("bad request sent to the gateway")
+	case 409:
+		logger.WithField("httpCode", response.StatusCode).Error(
+			"A route with the same path already exists in the api gateway")
+		return false, errors.New("route already exists")
+	default:
+		logger.WithFields(log.Fields{"httpCode": response.StatusCode,
+			"httpStatus": response.Status}).Error("An unexpected response code was received from the api gateway")
+		return false, errors.New("unexpected response code")
+	}
+}
+
 /*
 AddPluginToService adds a new plugin to the supplied service with the supplied configuration.
 The configuration is required by default. You may disable this by passing true to configurationOptional
