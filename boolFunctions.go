@@ -56,12 +56,12 @@ func IsAddressInUpstreamTargetList(targetAddress string, upstreamName string) (b
 	//Request the targets of the upstream
 	response, err := http.Get(gatewayAPIURL + "/upstreams/" + upstreamName + "/targets")
 	if err != nil {
+		logger.WithError(err).Error("Unable to check if the ip address is listed in upstream targets")
 		return false, err
 	}
 	// Check the status code of the response
 	switch response.StatusCode {
 	case 200:
-		logger.WithError(err).Error("Unable to check if the ip address is listed in upstream targets")
 		targetListResponse := &TargetListResponse{}
 		jsonParseError := json.NewDecoder(response.Body).Decode(targetListResponse)
 		if jsonParseError != nil {
