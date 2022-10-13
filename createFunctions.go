@@ -24,7 +24,7 @@ func CreateNewUpstream(upstreamName string) (bool, error) {
 	}
 	// Build the request body for the upstream creation request
 	requestBody := url.Values{}
-	requestBody.Set("upstreamName", upstreamName)
+	requestBody.Set("name", upstreamName)
 	// Make the request to the gateway
 	response, err := http.PostForm(gatewayAPIURL+"/upstreams", requestBody)
 	if err != nil {
@@ -64,7 +64,7 @@ func CreateTargetInUpstream(targetAddress string, upstreamName string) (bool, er
 	}
 	// Build the request body
 	requestBody := url.Values{}
-	requestBody.Set("targetAddress", targetAddress)
+	requestBody.Set("target", targetAddress)
 
 	// Send the request body to the gateway
 	response, err := http.PostForm(gatewayAPIURL+"/upstreams/"+upstreamName+"/targets", requestBody)
