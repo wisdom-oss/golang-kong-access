@@ -14,10 +14,10 @@ Check if an upstream with the name is configured in the Kong API Gateway
 */
 func IsUpstreamSetUp(upstreamName string) (bool, error) {
 	// check if the gateway connection was set up
-	if gatewayAPIURL == "" {
+	if strings.TrimSpace(gatewayAPIURL) == "" {
 		return false, errors.New("the connection to the api gateway was not set up")
 	}
-	if upstreamName == "" || strings.TrimSpace(upstreamName) == "" {
+	if strings.TrimSpace(upstreamName) == "" {
 		return false, errors.New("empty upstreamName supplied")
 	}
 	logger.WithField("upstream", upstreamName).Debug("Checking if the upstream is configured on the gateway")
