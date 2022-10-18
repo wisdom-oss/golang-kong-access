@@ -44,13 +44,13 @@ func IsUpstreamSetUp(upstreamName string) (bool, error) {
 }
 
 func IsAddressInUpstreamTargetList(targetAddress string, upstreamName string) (bool, error) {
-	if gatewayAPIURL == "" {
+	if strings.TrimSpace(gatewayAPIURL) == "" {
 		return false, errors.New("the connection to the api gateway was not set up")
 	}
-	if targetAddress == "" || strings.TrimSpace(targetAddress) == "" {
+	if strings.TrimSpace(targetAddress) == "" {
 		return false, errors.New("empty target address")
 	}
-	if upstreamName == "" || strings.TrimSpace(upstreamName) == "" {
+	if strings.TrimSpace(upstreamName) == "" {
 		return false, errors.New("empty upstreamName supplied")
 	}
 	//Request the targets of the upstream
