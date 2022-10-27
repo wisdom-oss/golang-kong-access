@@ -1,7 +1,6 @@
 package golangkongaccess
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 
@@ -23,18 +22,14 @@ SetUpGatewayConnection
 Call this function to set up the connection to the API Gateway
 */
 func SetUpGatewayConnection(gatewayHost string, gatewayAdminAPIPort int, useSSL bool) error {
-	// Default to not using SSL to connect to the API Gateway
-	useSSL = false
-	protocol := "http"
 	// Check that the port number is in the supported range
 	if gatewayAdminAPIPort < 1 || gatewayAdminAPIPort > 65535 {
-		return errors.New("the given port is outside of the supported range")
+		return ErrPortOutOfRange
 	}
-	if useSSL == true {
-		protocol = "https"
-		gatewayAPIURL = fmt.Sprintf("%s://%s:%d", protocol, gatewayHost, gatewayAdminAPIPort)
+	if useSSL {
+		gatewayAPIURL = fmt.Sprintf("https://%s:%d", gatewayHost, gatewayAdminAPIPort)
 	} else {
-		gatewayAPIURL = fmt.Sprintf("%s://%s:%d", protocol, gatewayHost, gatewayAdminAPIPort)
+		gatewayAPIURL = fmt.Sprintf("http://%s:%d", gatewayHost, gatewayAdminAPIPort)
 	}
 	return nil
 }
