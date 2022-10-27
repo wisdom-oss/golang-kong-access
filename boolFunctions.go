@@ -48,10 +48,10 @@ func IsAddressInUpstreamTargetList(targetAddress string, upstreamName string) (b
 	if gatewayAPIURL == "" {
 		return false, errors.New("the connection to the api gateway was not set up")
 	}
-	if targetAddress == "" || strings.TrimSpace(targetAddress) == "" {
+	if strings.TrimSpace(targetAddress) == "" {
 		return false, errors.New("empty target address")
 	}
-	if upstreamName == "" || strings.TrimSpace(upstreamName) == "" {
+	if strings.TrimSpace(upstreamName) == "" {
 		return false, errors.New("empty upstreamName supplied")
 	}
 	//Request the targets of the upstream
@@ -92,7 +92,7 @@ func IsServiceSetUp(serviceName string) (bool, error) {
 	if gatewayAPIURL == "" {
 		return false, errors.New("the connection to the api gateway was not set up")
 	}
-	if serviceName == "" || strings.TrimSpace(serviceName) == "" {
+	if strings.TrimSpace(serviceName) == "" {
 		return false, errors.New("empty service name supplied")
 	}
 	response, err := http.Get(gatewayAPIURL + "/services/" + serviceName)
@@ -121,10 +121,10 @@ func ServiceHasUpstream(serviceName string, upstreamName string) (bool, error) {
 	if gatewayAPIURL == "" {
 		return false, errors.New("the connection to the api gateway was not set up")
 	}
-	if serviceName == "" || strings.TrimSpace(serviceName) == "" {
+	if strings.TrimSpace(serviceName) == "" {
 		return false, errors.New("empty service name supplied")
 	}
-	if upstreamName == "" || strings.TrimSpace(upstreamName) == "" {
+	if strings.TrimSpace(upstreamName) == "" {
 		return false, errors.New("empty upstream name supplied")
 	}
 
@@ -147,7 +147,7 @@ func ServiceHasRouteSetUp(serviceName string) (bool, error) {
 	if gatewayAPIURL == "" {
 		return false, errors.New("the connection to the api gateway was not set up")
 	}
-	if serviceName == "" || strings.TrimSpace(serviceName) == "" {
+	if strings.TrimSpace(serviceName) == "" {
 		return false, errors.New("empty service name supplied")
 	}
 	routeConfigurationList, err := ReadRouteConfigurationList(serviceName)
@@ -166,10 +166,10 @@ func ServiceHasRouteWithPathSetUp(serviceName string, path string) (bool, error)
 	if gatewayAPIURL == "" {
 		return false, errors.New("the connection to the api gateway was not set up")
 	}
-	if serviceName == "" || strings.TrimSpace(serviceName) == "" {
+	if strings.TrimSpace(serviceName) == "" {
 		return false, errors.New("empty service name supplied")
 	}
-	if path == "" || strings.TrimSpace(path) == "" {
+	if strings.TrimSpace(path) == "" {
 		return false, errors.New("empty path supplied")
 	}
 
@@ -193,10 +193,10 @@ func ServiceHasPlugin(serviceName string, pluginName string) (bool, error) {
 	if gatewayAPIURL == "" {
 		return false, errors.New("the connection to the api gateway was not set up")
 	}
-	if serviceName == "" || strings.TrimSpace(serviceName) == "" {
+	if strings.TrimSpace(serviceName) == "" {
 		return false, errors.New("empty service name supplied")
 	}
-	if pluginName == "" || strings.TrimSpace(pluginName) == "" {
+	if strings.TrimSpace(pluginName) == "" {
 		return false, errors.New("empty plugin name supplied")
 	}
 	pluginList, err := ReadServicePlugins(serviceName)
