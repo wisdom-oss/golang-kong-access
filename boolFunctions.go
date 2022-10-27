@@ -1,4 +1,4 @@
-package golang_kong_access
+package golangkongaccess
 
 import (
 	"encoding/json"
@@ -31,14 +31,17 @@ func IsUpstreamSetUp(upstreamName string) (bool, error) {
 	switch response.StatusCode {
 	case 200:
 		logger.WithField("upstream", upstreamName).Debug(
-			"The gateway responded with 200 OK -> the upstream is configured")
+			"The gateway responded with 200 OK -> the upstream is configured",
+		)
 		return true, nil
 	case 404:
 		logger.WithField("upstream", upstreamName).Warning("The supplied upstream is not configured on the gateway")
 		return false, nil
 	default:
-		logger.WithField("upstream", upstreamName).WithField("httpCode",
-			response.StatusCode).Error("The gateway responded with an unexpected status code")
+		logger.WithField("upstream", upstreamName).WithField(
+			"httpCode",
+			response.StatusCode,
+		).Error("The gateway responded with an unexpected status code")
 		return false, errors.New("unexpected status code")
 	}
 }
@@ -54,7 +57,7 @@ func IsAddressInUpstreamTargetList(targetAddress string, upstreamName string) (b
 	if strings.TrimSpace(upstreamName) == "" {
 		return false, errors.New("empty upstreamName supplied")
 	}
-	//Request the targets of the upstream
+	// Request the targets of the upstream
 	response, err := http.Get(gatewayAPIURL + "/upstreams/" + upstreamName + "/targets")
 	if err != nil {
 		logger.WithError(err).Error("Unable to check if the ip address is listed in upstream targets")
@@ -78,8 +81,10 @@ func IsAddressInUpstreamTargetList(targetAddress string, upstreamName string) (b
 		logger.WithField("upstream", upstreamName).Error("The supplied upstream is not configured on the gateway")
 		return false, errors.New("upstream not found")
 	default:
-		logger.WithField("upstream", upstreamName).WithField("httpCode",
-			response.StatusCode).Error("The gateway responded with an unexpected status code")
+		logger.WithField("upstream", upstreamName).WithField(
+			"httpCode",
+			response.StatusCode,
+		).Error("The gateway responded with an unexpected status code")
 		return false, errors.New("unexpected status code")
 	}
 }
@@ -108,8 +113,10 @@ func IsServiceSetUp(serviceName string) (bool, error) {
 		logger.WithField("serviceName", serviceName).Error("The supplied service is not configured on the gateway")
 		return false, nil
 	default:
-		logger.WithField("serviceName", serviceName).WithField("httpCode",
-			response.StatusCode).Error("The gateway responded with an unexpected status code")
+		logger.WithField("serviceName", serviceName).WithField(
+			"httpCode",
+			response.StatusCode,
+		).Error("The gateway responded with an unexpected status code")
 		return false, errors.New("unexpected status code")
 	}
 }

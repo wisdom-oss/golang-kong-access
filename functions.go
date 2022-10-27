@@ -1,4 +1,4 @@
-package golang_kong_access
+package golangkongaccess
 
 import (
 	"errors"

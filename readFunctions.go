@@ -1,4 +1,4 @@
-package golang_kong_access
+package golangkongaccess
 
 import (
 	"encoding/json"
@@ -42,11 +42,13 @@ func ReadUpstreamInformation(upstreamName string) (*UpstreamConfiguration, error
 		logger.WithField("upstream", upstreamName).Warning("The supplied upstream is not configured on the gateway")
 		return nil, errors.New("upstream not found")
 	default:
-		logger.WithFields(log.Fields{
-			"upstream":   upstreamName,
-			"httpCode":   response.StatusCode,
-			"httpStatus": response.Status,
-		}).Error("The gateway responded with an unexpected status code")
+		logger.WithFields(
+			log.Fields{
+				"upstream":   upstreamName,
+				"httpCode":   response.StatusCode,
+				"httpStatus": response.Status,
+			},
+		).Error("The gateway responded with an unexpected status code")
 		return nil, errors.New("unexpected http status")
 	}
 }
@@ -80,11 +82,16 @@ func ReadServiceConfiguration(serviceName string) (*ServiceConfiguration, error)
 		return nil, errors.New("bad request sent to the gateway")
 	case 404:
 		logger.WithField("httpCode", response.StatusCode).Error(
-			"The supplied service name is not present in the api gateway")
+			"The supplied service name is not present in the api gateway",
+		)
 		return nil, errors.New("service not found")
 	default:
-		logger.WithFields(log.Fields{"httpCode": response.StatusCode,
-			"httpStatus": response.Status}).Error("An unexpected response code was received from the api gateway")
+		logger.WithFields(
+			log.Fields{
+				"httpCode":   response.StatusCode,
+				"httpStatus": response.Status,
+			},
+		).Error("An unexpected response code was received from the api gateway")
 		return nil, errors.New("unexpected response code")
 	}
 }
@@ -114,11 +121,16 @@ func ReadRouteConfigurationList(serviceName string) (*RouteConfigurationList, er
 		return routeConfigurationList, nil
 	case 404:
 		logger.WithField("httpCode", response.StatusCode).Error(
-			"The supplied service name is not present in the api gateway")
+			"The supplied service name is not present in the api gateway",
+		)
 		return nil, errors.New("service not found")
 	default:
-		logger.WithFields(log.Fields{"httpCode": response.StatusCode,
-			"httpStatus": response.Status}).Error("An unexpected response code was received from the api gateway")
+		logger.WithFields(
+			log.Fields{
+				"httpCode":   response.StatusCode,
+				"httpStatus": response.Status,
+			},
+		).Error("An unexpected response code was received from the api gateway")
 		return nil, errors.New("unexpected response code")
 	}
 }
@@ -151,11 +163,16 @@ func ReadServicePlugins(serviceName string) (*PluginList, error) {
 		return pluginList, nil
 	case 404:
 		logger.WithField("httpCode", response.StatusCode).Error(
-			"The supplied service name is not present in the api gateway")
+			"The supplied service name is not present in the api gateway",
+		)
 		return nil, errors.New("service not found")
 	default:
-		logger.WithFields(log.Fields{"httpCode": response.StatusCode,
-			"httpStatus": response.Status}).Error("An unexpected response code was received from the api gateway")
+		logger.WithFields(
+			log.Fields{
+				"httpCode":   response.StatusCode,
+				"httpStatus": response.Status,
+			},
+		).Error("An unexpected response code was received from the api gateway")
 		return nil, errors.New("unexpected response code")
 	}
 }

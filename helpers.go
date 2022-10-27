@@ -1,4 +1,4 @@
-package golang_kong_access
+package golangkongaccess
 
 // stringArrayContains checks if the string s is present in the string array a
 func stringArrayContains(a []string, s string) bool {

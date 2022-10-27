@@ -1,4 +1,4 @@
-package golang_kong_access
+package golangkongaccess
 
 const (
 	ConsistentHashing LoadBalancingAlgorithm = "consistent-hashing"

@@ -1,4 +1,4 @@
-package golang_kong_access
+package golangkongaccess
 
 import (
 	"errors"
@@ -37,14 +37,17 @@ func CreateNewUpstream(upstreamName string) (bool, error) {
 		return true, nil
 	case 409:
 		logger.WithField("httpCode", response.StatusCode).Error(
-			"a upstream with this name already exists in the gateway")
+			"a upstream with this name already exists in the gateway",
+		)
 		return false, errors.New("upstream already exists")
 	default:
-		logger.WithFields(log.Fields{
-			"upstream":   upstreamName,
-			"httpCode":   response.StatusCode,
-			"httpStatus": response.Status,
-		}).Error("The gateway responded with an unexpected status code")
+		logger.WithFields(
+			log.Fields{
+				"upstream":   upstreamName,
+				"httpCode":   response.StatusCode,
+				"httpStatus": response.Status,
+			},
+		).Error("The gateway responded with an unexpected status code")
 		return false, errors.New("unexpected http status")
 	}
 }
@@ -82,8 +85,10 @@ func CreateTargetInUpstream(targetAddress string, upstreamName string) (bool, er
 		logger.WithField("httpCode", response.StatusCode).Error("The same target already exists in the upstream")
 		return false, errors.New("target already exists in the upstream")
 	default:
-		logger.WithField("httpCode", response.StatusCode).WithField("httpStatus",
-			response.Status).Error("Unexpected http status received in response")
+		logger.WithField("httpCode", response.StatusCode).WithField(
+			"httpStatus",
+			response.Status,
+		).Error("Unexpected http status received in response")
 		return false, errors.New("unexpected http status")
 	}
 }
@@ -118,11 +123,16 @@ func CreateService(serviceName string, upstreamName string) (bool, error) {
 		return false, errors.New("bad request sent to the gateway")
 	case 409:
 		logger.WithField("httpCode", response.StatusCode).Error(
-			"A service with the same name already exists in the api gateway")
+			"A service with the same name already exists in the api gateway",
+		)
 		return false, errors.New("service already exists")
 	default:
-		logger.WithFields(log.Fields{"httpCode": response.StatusCode,
-			"httpStatus": response.Status}).Error("An unexpected response code was received from the api gateway")
+		logger.WithFields(
+			log.Fields{
+				"httpCode":   response.StatusCode,
+				"httpStatus": response.Status,
+			},
+		).Error("An unexpected response code was received from the api gateway")
 		return false, errors.New("unexpected response code")
 	}
 }
@@ -168,11 +178,16 @@ func CreateNewRoute(serviceName string, path string) (bool, error) {
 		return false, errors.New("bad request sent to the gateway")
 	case 409:
 		logger.WithField("httpCode", response.StatusCode).Error(
-			"A route with the same path already exists in the api gateway")
+			"A route with the same path already exists in the api gateway",
+		)
 		return false, errors.New("route already exists")
 	default:
-		logger.WithFields(log.Fields{"httpCode": response.StatusCode,
-			"httpStatus": response.Status}).Error("An unexpected response code was received from the api gateway")
+		logger.WithFields(
+			log.Fields{
+				"httpCode":   response.StatusCode,
+				"httpStatus": response.Status,
+			},
+		).Error("An unexpected response code was received from the api gateway")
 		return false, errors.New("unexpected response code")
 	}
 }
@@ -222,11 +237,16 @@ func AddPluginToService(serviceName string, pluginName string, pluginConfigurati
 		return false, errors.New("bad request sent to the gateway")
 	case 409:
 		logger.WithField("httpCode", response.StatusCode).Error(
-			"The same plugin exists for this service")
+			"The same plugin exists for this service",
+		)
 		return false, errors.New("plugin already exists")
 	default:
-		logger.WithFields(log.Fields{"httpCode": response.StatusCode,
-			"httpStatus": response.Status}).Error("An unexpected response code was received from the api gateway")
+		logger.WithFields(
+			log.Fields{
+				"httpCode":   response.StatusCode,
+				"httpStatus": response.Status,
+			},
+		).Error("An unexpected response code was received from the api gateway")
 		return false, errors.New("unexpected response code")
 	}
 

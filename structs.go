@@ -1,7 +1,7 @@
-package golang_kong_access
+package golangkongaccess
 
 // UpstreamConfiguration specifies how the upstream is configured in the gateway.
-//This model is only used for reading such information from the gateway
+// This model is only used for reading such information from the gateway
 type UpstreamConfiguration struct {
 	UpstreamID                string                 `json:"upstreamID"`
 	CreationTimestamp         float64                `json:"created_at"`

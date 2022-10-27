@@ -1,4 +1,4 @@
-package golang_kong_access
+package golangkongaccess
 
 import (
 	"errors"
@@ -25,8 +25,10 @@ func UpdateServiceHost(serviceName string, newHost string) (bool, error) {
 	requestBody.Set("host", newHost)
 
 	// Build the PATCH request required by the api gateway
-	request, err := http.NewRequest("PATCH", gatewayAPIURL+"/services/"+serviceName,
-		strings.NewReader(requestBody.Encode()))
+	request, err := http.NewRequest(
+		"PATCH", gatewayAPIURL+"/services/"+serviceName,
+		strings.NewReader(requestBody.Encode()),
+	)
 	if err != nil {
 		logger.WithError(err).Error("An error occurred while building the request to update the service entry")
 		return false, err
@@ -62,11 +64,16 @@ func UpdateServiceHost(serviceName string, newHost string) (bool, error) {
 		return false, errors.New("bad request sent to the gateway")
 	case 404:
 		logger.WithField("httpCode", response.StatusCode).Error(
-			"The supplied service name is not present in the api gateway")
+			"The supplied service name is not present in the api gateway",
+		)
 		return false, errors.New("service not found")
 	default:
-		logger.WithFields(log.Fields{"httpCode": response.StatusCode,
-			"httpStatus": response.Status}).Error("An unexpected response code was received from the api gateway")
+		logger.WithFields(
+			log.Fields{
+				"httpCode":   response.StatusCode,
+				"httpStatus": response.Status,
+			},
+		).Error("An unexpected response code was received from the api gateway")
 		return false, errors.New("unexpected response code")
 	}
 }
