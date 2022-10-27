@@ -19,7 +19,7 @@ func CreateNewUpstream(upstreamName string) (bool, error) {
 	if gatewayAPIURL == "" {
 		return false, errors.New("the connection to the api gateway was not set up")
 	}
-	if upstreamName == "" || strings.TrimSpace(upstreamName) == "" {
+	if strings.TrimSpace(upstreamName) == "" {
 		return false, errors.New("empty upstream upstreamName supplied")
 	}
 	// Build the request body for the upstream creation request
@@ -56,10 +56,10 @@ func CreateTargetInUpstream(targetAddress string, upstreamName string) (bool, er
 	if gatewayAPIURL == "" {
 		return false, errors.New("the connection to the api gateway was not set up")
 	}
-	if targetAddress == "" || strings.TrimSpace(targetAddress) == "" {
+	if strings.TrimSpace(targetAddress) == "" {
 		return false, errors.New("empty targetAddress supplied")
 	}
-	if upstreamName == "" || strings.TrimSpace(upstreamName) == "" {
+	if strings.TrimSpace(upstreamName) == "" {
 		return false, errors.New("empty upstreamName supplied")
 	}
 	// Build the request body
@@ -95,7 +95,7 @@ func CreateService(serviceName string, upstreamName string) (bool, error) {
 	if gatewayAPIURL == "" {
 		return false, errors.New("the connection to the api gateway was not set up")
 	}
-	if serviceName == "" || strings.TrimSpace(serviceName) == "" {
+	if strings.TrimSpace(serviceName) == "" {
 		return false, errors.New("empty serviceName supplied")
 	}
 
@@ -131,10 +131,10 @@ func CreateNewRoute(serviceName string, path string) (bool, error) {
 	if gatewayAPIURL == "" {
 		return false, errors.New("the connection to the api gateway was not set up")
 	}
-	if serviceName == "" || strings.TrimSpace(serviceName) == "" {
+	if strings.TrimSpace(serviceName) == "" {
 		return false, errors.New("empty serviceName supplied")
 	}
-	if path == "" || strings.TrimSpace(path) == "" {
+	if strings.TrimSpace(path) == "" {
 		return false, errors.New("empty path supplied")
 	}
 
@@ -185,10 +185,10 @@ func AddPluginToService(serviceName string, pluginName string, pluginConfigurati
 	if gatewayAPIURL == "" {
 		return false, errors.New("the connection to the api gateway was not set up")
 	}
-	if serviceName == "" || strings.TrimSpace(serviceName) == "" {
+	if strings.TrimSpace(serviceName) == "" {
 		return false, errors.New("empty service name supplied")
 	}
-	if pluginName == "" || strings.TrimSpace(pluginName) == "" {
+	if strings.TrimSpace(pluginName) == "" {
 		return false, errors.New("empty plugin name supplied")
 	}
 
