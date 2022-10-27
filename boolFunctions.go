@@ -43,6 +43,7 @@ func IsUpstreamSetUp(upstreamName string) (bool, error) {
 	}
 }
 
+// IsAddressInUpstreamTargetList checks if the supplied target address is in the target list of the supplied upstream
 func IsAddressInUpstreamTargetList(targetAddress string, upstreamName string) (bool, error) {
 	if gatewayAPIURL == "" {
 		return false, errors.New("the connection to the api gateway was not set up")
