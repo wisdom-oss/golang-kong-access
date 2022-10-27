@@ -1,5 +1,7 @@
 package golang_kong_access
 
+// UpstreamConfiguration specifies how the upstream is configured in the gateway.
+//This model is only used for reading such information from the gateway
 type UpstreamConfiguration struct {
 	UpstreamID                string                 `json:"upstreamID"`
 	CreationTimestamp         float64                `json:"created_at"`
@@ -63,6 +65,7 @@ type UpstreamConfiguration struct {
 	} `json:"client_certificate"`
 }
 
+// UpstreamTargetInformation contains all information the gateway has stored about a upstream target.
 type UpstreamTargetInformation struct {
 	Id        string  `json:"id"`
 	CreatedAt float64 `json:"created_at"`
@@ -74,6 +77,7 @@ type UpstreamTargetInformation struct {
 	Tags    []string `json:"tags"`
 }
 
+// ServiceConfiguration contains all data stored in the gateway for the service configuration
 type ServiceConfiguration struct {
 	Id                string   `json:"id"`
 	CreationTimestamp float64  `json:"created_at"`
@@ -97,6 +101,7 @@ type ServiceConfiguration struct {
 	Enabled        bool        `json:"enabled"`
 }
 
+// RouteConfiguration contains all information about a route set up in the gateways
 type RouteConfiguration struct {
 	Id                      string            `json:"id"`
 	CreationTimestamp       float64           `json:"created_at"`
@@ -120,6 +125,7 @@ type RouteConfiguration struct {
 	} `json:"service"`
 }
 
+// PluginInformation contains the information about a plugin installed on either a service, path or globally
 type PluginInformation struct {
 	Id                string                 `json:"id"`
 	Name              string                 `json:"name"`
