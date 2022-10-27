@@ -7,11 +7,7 @@ import (
 	"strings"
 )
 
-/*
-IsUpstreamSetUp
-
-Check if an upstream with the name is configured in the Kong API Gateway
-*/
+// IsUpstreamSetUp checks if an upstream with the name is configured in the Kong API Gateway
 func IsUpstreamSetUp(upstreamName string) (bool, error) {
 	// check if the gateway connection was set up
 	if strings.TrimSpace(gatewayAPIURL) == "" {
