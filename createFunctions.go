@@ -127,6 +127,7 @@ func CreateService(serviceName string, upstreamName string) (bool, error) {
 	}
 }
 
+// CreateNewRoute sets up a new route entry in the gateway allowing the service to be reached under the path
 func CreateNewRoute(serviceName string, path string) (bool, error) {
 	if gatewayAPIURL == "" {
 		return false, errors.New("the connection to the api gateway was not set up")
