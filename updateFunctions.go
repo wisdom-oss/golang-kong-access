@@ -9,6 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// UpdateServiceHost updates a services host address
 func UpdateServiceHost(serviceName string, newHost string) (bool, error) {
 	if gatewayAPIURL == "" {
 		return false, ErrConnectionNotSetUp
