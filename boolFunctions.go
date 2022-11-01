@@ -3,6 +3,8 @@ package golangkongaccess
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"io"
 	"net/http"
 	"strings"
 )
@@ -11,53 +13,75 @@ import (
 func IsUpstreamSetUp(upstreamName string) (bool, error) {
 	// check if the gateway connection was set up
 	if strings.TrimSpace(gatewayAPIURL) == "" {
-		return false, errors.New("the connection to the api gateway was not set up")
+		return false, ErrConnectionNotSetUp
 	}
 	if strings.TrimSpace(upstreamName) == "" {
-		return false, errors.New("empty upstreamName supplied")
+		return false, ErrEmptyFunctionParameter
 	}
 	logger.WithField("upstream", upstreamName).Debug("Checking if the upstream is configured on the gateway")
 	// Make a http request to the gateway
 	response, err := http.Get(gatewayAPIURL + "/upstreams/" + upstreamName)
 	if err != nil {
 		logger.WithError(err).Error("Unable to check if the upstream exists")
-		return false, err
+		err := response.Body.Close()
+		if err != nil {
+			return false, errors.Unwrap(err)
+		}
+		return false, fmt.Errorf("http client error: %w", err)
 	}
+	// Since the response body is not being used we now close the response body
 	// Check the status code of the response
 	switch response.StatusCode {
 	case 200:
 		logger.WithField("upstream", upstreamName).Debug(
 			"The gateway responded with 200 OK -> the upstream is configured",
 		)
+		defer func(Body io.ReadCloser) {
+			err := Body.Close()
+			if err != nil {
+				logger.WithError(err).Error("While closing the response body an error occurred")
+			}
+		}(response.Body)
 		return true, nil
 	case 404:
 		logger.WithField("upstream", upstreamName).Warning("The supplied upstream is not configured on the gateway")
+		defer func(Body io.ReadCloser) {
+			err := Body.Close()
+			if err != nil {
+				logger.WithError(err).Error("While closing the response body an error occurred")
+				return
+			}
+		}(response.Body)
 		return false, nil
 	default:
 		logger.WithField("upstream", upstreamName).WithField(
 			"httpCode",
 			response.StatusCode,
 		).Error("The gateway responded with an unexpected status code")
-		return false, errors.New("unexpected status code")
+		defer func(Body io.ReadCloser) {
+			err := Body.Close()
+			if err != nil {
+				logger.WithError(err).Error("While closing the response body an error occurred")
+				return
+			}
+		}(response.Body)
+		return false, ErrUnexpectedHttpCode
 	}
 }
 
 // IsAddressInUpstreamTargetList checks if the supplied target address is in the target list of the supplied upstream
 func IsAddressInUpstreamTargetList(targetAddress string, upstreamName string) (bool, error) {
 	if strings.TrimSpace(gatewayAPIURL) == "" {
-		return false, errors.New("the connection to the api gateway was not set up")
+		return false, ErrConnectionNotSetUp
 	}
-	if strings.TrimSpace(targetAddress) == "" {
-		return false, errors.New("empty target address")
-	}
-	if strings.TrimSpace(upstreamName) == "" {
-		return false, errors.New("empty upstreamName supplied")
+	if strings.TrimSpace(targetAddress) == "" || strings.TrimSpace(upstreamName) == "" {
+		return false, ErrEmptyFunctionParameter
 	}
 	// Request the targets of the upstream
 	response, err := http.Get(gatewayAPIURL + "/upstreams/" + upstreamName + "/targets")
 	if err != nil {
 		logger.WithError(err).Error("Unable to check if the ip address is listed in upstream targets")
-		return false, err
+		return false, fmt.Errorf("http client error: %w", err)
 	}
 	// Check the status code of the response
 	switch response.StatusCode {
@@ -91,15 +115,15 @@ if the service is correctly configured. For checking the configuration please us
 */
 func IsServiceSetUp(serviceName string) (bool, error) {
 	if gatewayAPIURL == "" {
-		return false, errors.New("the connection to the api gateway was not set up")
+		return false, ErrConnectionNotSetUp
 	}
 	if strings.TrimSpace(serviceName) == "" {
-		return false, errors.New("empty service name supplied")
+		return false, ErrEmptyFunctionParameter
 	}
 	response, err := http.Get(gatewayAPIURL + "/services/" + serviceName)
 	if err != nil {
 		logger.WithError(err).Error("Unable to check if the service is configured")
-		return false, err
+		return false, fmt.Errorf("http client error: %w", err)
 	}
 	// Check the status code of the response
 	switch response.StatusCode {
@@ -122,20 +146,17 @@ ServiceHasUpstream tests if the supplied service name's configuration has the up
 */
 func ServiceHasUpstream(serviceName string, upstreamName string) (bool, error) {
 	if gatewayAPIURL == "" {
-		return false, errors.New("the connection to the api gateway was not set up")
+		return false, ErrConnectionNotSetUp
 	}
-	if strings.TrimSpace(serviceName) == "" {
-		return false, errors.New("empty service name supplied")
-	}
-	if strings.TrimSpace(upstreamName) == "" {
-		return false, errors.New("empty upstream name supplied")
+	if strings.TrimSpace(serviceName) == "" || strings.TrimSpace(upstreamName) == "" {
+		return false, ErrEmptyFunctionParameter
 	}
 
 	// Use the read function to access the service configuration
 	serviceConfiguration, err := ReadServiceConfiguration(serviceName)
 	if err != nil {
 		logger.WithError(err).Error("An error occurred while reading the service configuration from the api gateway")
-		return false, err
+		return false, fmt.Errorf("http client error: %w", err)
 	}
 
 	// Now access the service configuration and check the host entry
@@ -148,10 +169,10 @@ To check for a route with a path use ServiceHasRouteWithPathSetUp
 */
 func ServiceHasRouteSetUp(serviceName string) (bool, error) {
 	if gatewayAPIURL == "" {
-		return false, errors.New("the connection to the api gateway was not set up")
+		return false, ErrConnectionNotSetUp
 	}
 	if strings.TrimSpace(serviceName) == "" {
-		return false, errors.New("empty service name supplied")
+		return false, ErrEmptyFunctionParameter
 	}
 	routeConfigurationList, err := ReadRouteConfigurationList(serviceName)
 	if err != nil {
@@ -167,13 +188,10 @@ HINT: You need to include a leading slash in the path
 */
 func ServiceHasRouteWithPathSetUp(serviceName string, path string) (bool, error) {
 	if gatewayAPIURL == "" {
-		return false, errors.New("the connection to the api gateway was not set up")
+		return false, ErrConnectionNotSetUp
 	}
-	if strings.TrimSpace(serviceName) == "" {
-		return false, errors.New("empty service name supplied")
-	}
-	if strings.TrimSpace(path) == "" {
-		return false, errors.New("empty path supplied")
+	if strings.TrimSpace(serviceName) == "" || strings.TrimSpace(path) == "" {
+		return false, ErrEmptyFunctionParameter
 	}
 
 	routeConfigurationList, err := ReadRouteConfigurationList(serviceName)
@@ -194,13 +212,10 @@ ServiceHasPlugin checks if a service has a plugin set up with the supplied name
 */
 func ServiceHasPlugin(serviceName string, pluginName string) (bool, error) {
 	if gatewayAPIURL == "" {
-		return false, errors.New("the connection to the api gateway was not set up")
+		return false, ErrConnectionNotSetUp
 	}
-	if strings.TrimSpace(serviceName) == "" {
-		return false, errors.New("empty service name supplied")
-	}
-	if strings.TrimSpace(pluginName) == "" {
-		return false, errors.New("empty plugin name supplied")
+	if strings.TrimSpace(serviceName) == "" || strings.TrimSpace(pluginName) == "" {
+		return false, ErrEmptyFunctionParameter
 	}
 	pluginList, err := ReadServicePlugins(serviceName)
 	if err != nil {

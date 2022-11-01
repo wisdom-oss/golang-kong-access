@@ -1,7 +1,7 @@
 package golangkongaccess
 
 import (
-	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
@@ -17,19 +17,24 @@ If errors are returned by other used functions the error will be returned
 */
 func CreateNewUpstream(upstreamName string) (bool, error) {
 	if gatewayAPIURL == "" {
-		return false, errors.New("the connection to the api gateway was not set up")
+		return false, ErrConnectionNotSetUp
 	}
 	if strings.TrimSpace(upstreamName) == "" {
-		return false, errors.New("empty upstream upstreamName supplied")
+		return false, ErrEmptyFunctionParameter
 	}
 	// Build the request body for the upstream creation request
 	requestBody := url.Values{}
 	requestBody.Set("name", upstreamName)
 	// Make the request to the gateway
 	response, err := http.PostForm(gatewayAPIURL+"/upstreams", requestBody)
+	// Close the response body since it is not being read by the function
+	bodyCloseErr := response.Body.Close()
+	if bodyCloseErr != nil {
+		return false, fmt.Errorf("error while closing response body: %w", bodyCloseErr)
+	}
 	if err != nil {
 		logger.WithError(err).Error("the upstream could not be created")
-		return false, err
+		return false, wrapHttpClientError(err)
 	}
 	switch response.StatusCode {
 	case 201:
@@ -39,7 +44,7 @@ func CreateNewUpstream(upstreamName string) (bool, error) {
 		logger.WithField("httpCode", response.StatusCode).Error(
 			"a upstream with this name already exists in the gateway",
 		)
-		return false, errors.New("upstream already exists")
+		return false, ErrResourceExists
 	default:
 		logger.WithFields(
 			log.Fields{
@@ -48,7 +53,7 @@ func CreateNewUpstream(upstreamName string) (bool, error) {
 				"httpStatus": response.Status,
 			},
 		).Error("The gateway responded with an unexpected status code")
-		return false, errors.New("unexpected http status")
+		return false, ErrUnexpectedHttpCode
 	}
 }
 
@@ -57,13 +62,13 @@ CreateTargetInUpstream creates a new target with the supplied targetAddress on t
 */
 func CreateTargetInUpstream(targetAddress string, upstreamName string) (bool, error) {
 	if gatewayAPIURL == "" {
-		return false, errors.New("the connection to the api gateway was not set up")
+		return false, ErrConnectionNotSetUp
 	}
 	if strings.TrimSpace(targetAddress) == "" {
-		return false, errors.New("empty targetAddress supplied")
+		return false, ErrEmptyFunctionParameter
 	}
 	if strings.TrimSpace(upstreamName) == "" {
-		return false, errors.New("empty upstreamName supplied")
+		return false, ErrEmptyFunctionParameter
 	}
 	// Build the request body
 	requestBody := url.Values{}
@@ -71,8 +76,12 @@ func CreateTargetInUpstream(targetAddress string, upstreamName string) (bool, er
 
 	// Send the request body to the gateway
 	response, err := http.PostForm(gatewayAPIURL+"/upstreams/"+upstreamName+"/targets", requestBody)
+	bodyCloseErr := response.Body.Close()
+	if bodyCloseErr != nil {
+		return false, fmt.Errorf("error while closing response body: %w", bodyCloseErr)
+	}
 	if err != nil {
-		return false, err
+		return false, wrapHttpClientError(err)
 	}
 
 	switch response.StatusCode {
@@ -80,16 +89,16 @@ func CreateTargetInUpstream(targetAddress string, upstreamName string) (bool, er
 		return true, nil
 	case 400:
 		logger.WithField("httpCode", response.StatusCode).Error("The request was malformed and could no be acted upon")
-		return false, errors.New("bad request made")
+		return false, ErrBadRequest
 	case 409:
 		logger.WithField("httpCode", response.StatusCode).Error("The same target already exists in the upstream")
-		return false, errors.New("target already exists in the upstream")
+		return false, ErrResourceExists
 	default:
 		logger.WithField("httpCode", response.StatusCode).WithField(
 			"httpStatus",
 			response.Status,
 		).Error("Unexpected http status received in response")
-		return false, errors.New("unexpected http status")
+		return false, ErrUnexpectedHttpCode
 	}
 }
 
@@ -98,10 +107,10 @@ CreateService creates a new service object which uses the supplied upstream as h
 */
 func CreateService(serviceName string, upstreamName string) (bool, error) {
 	if gatewayAPIURL == "" {
-		return false, errors.New("the connection to the api gateway was not set up")
+		return false, ErrConnectionNotSetUp
 	}
 	if strings.TrimSpace(serviceName) == "" {
-		return false, errors.New("empty serviceName supplied")
+		return false, ErrEmptyFunctionParameter
 	}
 
 	// Build the request body
@@ -113,19 +122,23 @@ func CreateService(serviceName string, upstreamName string) (bool, error) {
 	response, err := http.PostForm(gatewayAPIURL+"/services", requestBody)
 	if err != nil {
 		logger.WithError(err).Error("An error occurred while sending the request to the api gateway")
-		return false, err
+		return false, wrapHttpClientError(err)
+	}
+	bodyCloseErr := response.Body.Close()
+	if bodyCloseErr != nil {
+		return false, fmt.Errorf("error while closing response body: %w", bodyCloseErr)
 	}
 	switch response.StatusCode {
 	case 201:
 		return true, nil
 	case 400:
 		logger.WithField("httpCode", response.StatusCode).Error("A bad request was made to the api gateway")
-		return false, errors.New("bad request sent to the gateway")
+		return false, ErrBadRequest
 	case 409:
 		logger.WithField("httpCode", response.StatusCode).Error(
 			"A service with the same name already exists in the api gateway",
 		)
-		return false, errors.New("service already exists")
+		return false, ErrResourceExists
 	default:
 		logger.WithFields(
 			log.Fields{
@@ -133,20 +146,20 @@ func CreateService(serviceName string, upstreamName string) (bool, error) {
 				"httpStatus": response.Status,
 			},
 		).Error("An unexpected response code was received from the api gateway")
-		return false, errors.New("unexpected response code")
+		return false, ErrUnexpectedHttpCode
 	}
 }
 
 // CreateNewRoute sets up a new route entry in the gateway allowing the service to be reached under the path
 func CreateNewRoute(serviceName string, path string) (bool, error) {
 	if gatewayAPIURL == "" {
-		return false, errors.New("the connection to the api gateway was not set up")
+		return false, ErrConnectionNotSetUp
 	}
 	if strings.TrimSpace(serviceName) == "" {
-		return false, errors.New("empty serviceName supplied")
+		return false, ErrEmptyFunctionParameter
 	}
 	if strings.TrimSpace(path) == "" {
-		return false, errors.New("empty path supplied")
+		return false, ErrEmptyFunctionParameter
 	}
 
 	// Build the request body
@@ -156,9 +169,13 @@ func CreateNewRoute(serviceName string, path string) (bool, error) {
 
 	// Send the request to the api gateway
 	response, err := http.PostForm(gatewayAPIURL+"/services/"+serviceName+"/routes", requestBody)
+	bodyCloseErr := response.Body.Close()
+	if bodyCloseErr != nil {
+		return false, fmt.Errorf("error while closing response body: %w", bodyCloseErr)
+	}
 	if err != nil {
 		logger.WithError(err).Error("An error occurred while sending the request to the api gateway")
-		return false, err
+		return false, fmt.Errorf("http client error: %w", err)
 	}
 
 	switch response.StatusCode {
@@ -170,17 +187,17 @@ func CreateNewRoute(serviceName string, path string) (bool, error) {
 		}
 		if !routeCreated {
 			logger.Error("The route has not been created")
-			return false, errors.New("route not found in test")
+			return false, ErrResourceNotCreated
 		}
 		return true, nil
 	case 400:
 		logger.WithField("httpCode", response.StatusCode).Error("A bad request was made to the api gateway")
-		return false, errors.New("bad request sent to the gateway")
+		return false, ErrBadRequest
 	case 409:
 		logger.WithField("httpCode", response.StatusCode).Error(
 			"A route with the same path already exists in the api gateway",
 		)
-		return false, errors.New("route already exists")
+		return false, ErrResourceExists
 	default:
 		logger.WithFields(
 			log.Fields{
@@ -188,7 +205,7 @@ func CreateNewRoute(serviceName string, path string) (bool, error) {
 				"httpStatus": response.Status,
 			},
 		).Error("An unexpected response code was received from the api gateway")
-		return false, errors.New("unexpected response code")
+		return false, ErrUnexpectedHttpCode
 	}
 }
 
@@ -199,13 +216,10 @@ The configuration is required by default. You may disable this by passing true t
 func AddPluginToService(serviceName string, pluginName string, pluginConfiguration url.Values) (bool, error) {
 	// This is required to us
 	if gatewayAPIURL == "" {
-		return false, errors.New("the connection to the api gateway was not set up")
+		return false, ErrConnectionNotSetUp
 	}
-	if strings.TrimSpace(serviceName) == "" {
-		return false, errors.New("empty service name supplied")
-	}
-	if strings.TrimSpace(pluginName) == "" {
-		return false, errors.New("empty plugin name supplied")
+	if strings.TrimSpace(serviceName) == "" || strings.TrimSpace(pluginName) == "" {
+		return false, ErrEmptyFunctionParameter
 	}
 
 	// Build the request body
@@ -221,25 +235,30 @@ func AddPluginToService(serviceName string, pluginName string, pluginConfigurati
 
 	// Send a request to the api gateway
 	response, err := http.PostForm(gatewayAPIURL+"/services/"+serviceName+"/plugins", requestBody)
+	bodyCloseErr := response.Body.Close()
+	if bodyCloseErr != nil {
+		return false, fmt.Errorf("error while closing response body: %w", bodyCloseErr)
+	}
 	if err != nil {
 		logger.WithError(err).Error("An error occurred while sending the request to the api gateway")
-		return false, err
+		return false, wrapHttpClientError(err)
 	}
 	switch response.StatusCode {
 	case 201:
 		pluginConfigured, err := ServiceHasPlugin(serviceName, pluginName)
 		if err != nil {
 			logger.WithError(err).Error("An error occurred while checking the plugin creation")
+			return false, fmt.Errorf("unable to check plugin creation: %w", err)
 		}
 		return pluginConfigured, nil
 	case 400:
 		logger.WithField("httpCode", response.StatusCode).Error("A bad request was made to the api gateway")
-		return false, errors.New("bad request sent to the gateway")
+		return false, ErrBadRequest
 	case 409:
 		logger.WithField("httpCode", response.StatusCode).Error(
 			"The same plugin exists for this service",
 		)
-		return false, errors.New("plugin already exists")
+		return false, ErrResourceExists
 	default:
 		logger.WithFields(
 			log.Fields{
@@ -247,7 +266,6 @@ func AddPluginToService(serviceName string, pluginName string, pluginConfigurati
 				"httpStatus": response.Status,
 			},
 		).Error("An unexpected response code was received from the api gateway")
-		return false, errors.New("unexpected response code")
+		return false, ErrUnexpectedHttpCode
 	}
-
 }

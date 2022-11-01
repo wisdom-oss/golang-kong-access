@@ -2,17 +2,17 @@ package golangkongaccess
 
 const (
 	ConsistentHashing LoadBalancingAlgorithm = "consistent-hashing"
-	LeastConnections                         = "least-connections"
-	RoundRobin                               = "round-robin"
+	LeastConnections  LoadBalancingAlgorithm = "least-connections"
+	RoundRobin        LoadBalancingAlgorithm = "round-robin"
 )
 
 const (
 	Consumer      HashingInput = "consumer"
-	IpAddress                  = "ip"
-	Header                     = "header"
-	Cookie                     = "cookie"
-	Path                       = "path"
-	QueryArgument              = "query_arg"
-	UriCapture                 = "uri_capture"
-	None                       = "none"
+	IpAddress     HashingInput = "ip"
+	Header        HashingInput = "header"
+	Cookie        HashingInput = "cookie"
+	Path          HashingInput = "path"
+	QueryArgument HashingInput = "query_arg"
+	UriCapture    HashingInput = "uri_capture"
+	None          HashingInput = "none"
 )
