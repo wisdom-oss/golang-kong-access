@@ -26,12 +26,13 @@ func ReadUpstreamInformation(upstreamName string) (*UpstreamConfiguration, error
 	upstreamConfiguration := &UpstreamConfiguration{}
 	// Make a http request for information about the upstream
 	response, err := http.Get(gatewayAPIURL + "/upstreams/" + upstreamName)
-	bodyCloseErr := response.Body.Close()
-	if bodyCloseErr != nil {
-		return nil, fmt.Errorf("error while closing response body: %w", bodyCloseErr)
-	}
+
 	if err != nil {
 		logger.WithError(err).Error("An error occurred while sending the request to the gateway")
+		bodyCloseErr := response.Body.Close()
+		if bodyCloseErr != nil {
+			return nil, fmt.Errorf("error while closing response body: %w", bodyCloseErr)
+		}
 		return nil, wrapHttpClientError(err)
 	}
 	switch response.StatusCode {
@@ -40,11 +41,19 @@ func ReadUpstreamInformation(upstreamName string) (*UpstreamConfiguration, error
 		jsonParseError := json.NewDecoder(response.Body).Decode(upstreamConfiguration)
 		if jsonParseError != nil {
 			logger.WithError(jsonParseError).Error("An error occurred while parsing the gateways response")
+			bodyCloseErr := response.Body.Close()
+			if bodyCloseErr != nil {
+				return nil, fmt.Errorf("error while closing response body: %w", bodyCloseErr)
+			}
 			return nil, fmt.Errorf("unable to parse json: %w", jsonParseError)
 		}
 		return upstreamConfiguration, nil
 	case 404:
 		logger.WithField("upstream", upstreamName).Warning("The supplied upstream is not configured on the gateway")
+		bodyCloseErr := response.Body.Close()
+		if bodyCloseErr != nil {
+			return nil, fmt.Errorf("error while closing response body: %w", bodyCloseErr)
+		}
 		return nil, ErrResourceNotFound
 	default:
 		logger.WithFields(
@@ -54,6 +63,10 @@ func ReadUpstreamInformation(upstreamName string) (*UpstreamConfiguration, error
 				"httpStatus": response.Status,
 			},
 		).Error("The gateway responded with an unexpected status code")
+		bodyCloseErr := response.Body.Close()
+		if bodyCloseErr != nil {
+			return nil, fmt.Errorf("error while closing response body: %w", bodyCloseErr)
+		}
 		return nil, ErrUnexpectedHttpCode
 	}
 }
@@ -70,12 +83,13 @@ func ReadServiceConfiguration(serviceName string) (*ServiceConfiguration, error)
 
 	// Make a request to the api gateway
 	response, err := http.Get(gatewayAPIURL + "/services/" + serviceName)
-	bodyCloseErr := response.Body.Close()
-	if bodyCloseErr != nil {
-		return nil, fmt.Errorf("error while closing response body: %w", bodyCloseErr)
-	}
+
 	if err != nil {
 		logger.WithError(err).Error("An error occurred while sending the request to the api gateway")
+		bodyCloseErr := response.Body.Close()
+		if bodyCloseErr != nil {
+			return nil, fmt.Errorf("error while closing response body: %w", bodyCloseErr)
+		}
 		return nil, wrapHttpClientError(err)
 	}
 	switch response.StatusCode {
@@ -83,11 +97,19 @@ func ReadServiceConfiguration(serviceName string) (*ServiceConfiguration, error)
 		jsonDecodeError := json.NewDecoder(response.Body).Decode(serviceConfiguration)
 		if jsonDecodeError != nil {
 			logger.WithError(jsonDecodeError).Error("Unable to parse the response sent by the api gateway")
+			bodyCloseErr := response.Body.Close()
+			if bodyCloseErr != nil {
+				return nil, fmt.Errorf("error while closing response body: %w", bodyCloseErr)
+			}
 			return nil, fmt.Errorf("unable to parse json: %w", jsonDecodeError)
 		}
 		return serviceConfiguration, nil
 	case 400:
 		logger.WithField("httpCode", response.StatusCode).Error("A bad request was made to the api gateway")
+		bodyCloseErr := response.Body.Close()
+		if bodyCloseErr != nil {
+			return nil, fmt.Errorf("error while closing response body: %w", bodyCloseErr)
+		}
 		return nil, ErrBadRequest
 	case 404:
 		logger.WithField("httpCode", response.StatusCode).Error(
@@ -101,6 +123,10 @@ func ReadServiceConfiguration(serviceName string) (*ServiceConfiguration, error)
 				"httpStatus": response.Status,
 			},
 		).Error("An unexpected response code was received from the api gateway")
+		bodyCloseErr := response.Body.Close()
+		if bodyCloseErr != nil {
+			return nil, fmt.Errorf("error while closing response body: %w", bodyCloseErr)
+		}
 		return nil, ErrUnexpectedHttpCode
 	}
 }
@@ -114,12 +140,13 @@ func ReadRouteConfigurationList(serviceName string) (*RouteConfigurationList, er
 	}
 	// Make the request to the api gateway
 	response, err := http.Get(gatewayAPIURL + "/services/" + serviceName + "/routes")
-	bodyCloseErr := response.Body.Close()
-	if bodyCloseErr != nil {
-		return nil, fmt.Errorf("error while closing response body: %w", bodyCloseErr)
-	}
+
 	if err != nil {
 		logger.WithError(err).Error("An error occurred while reading the routes from the service")
+		bodyCloseErr := response.Body.Close()
+		if bodyCloseErr != nil {
+			return nil, fmt.Errorf("error while closing response body: %w", bodyCloseErr)
+		}
 		return nil, wrapHttpClientError(err)
 	}
 
@@ -129,6 +156,10 @@ func ReadRouteConfigurationList(serviceName string) (*RouteConfigurationList, er
 		jsonDecodeError := json.NewDecoder(response.Body).Decode(routeConfigurationList)
 		if jsonDecodeError != nil {
 			logger.WithError(jsonDecodeError).Error("Unable to parse the response sent by the api gateway")
+			bodyCloseErr := response.Body.Close()
+			if bodyCloseErr != nil {
+				return nil, fmt.Errorf("error while closing response body: %w", bodyCloseErr)
+			}
 			return nil, fmt.Errorf("unable to parse json: %w", jsonDecodeError)
 		}
 		return routeConfigurationList, nil
@@ -136,6 +167,10 @@ func ReadRouteConfigurationList(serviceName string) (*RouteConfigurationList, er
 		logger.WithField("httpCode", response.StatusCode).Error(
 			"The supplied service name is not present in the api gateway",
 		)
+		bodyCloseErr := response.Body.Close()
+		if bodyCloseErr != nil {
+			return nil, fmt.Errorf("error while closing response body: %w", bodyCloseErr)
+		}
 		return nil, ErrResourceNotFound
 	default:
 		logger.WithFields(
@@ -144,6 +179,10 @@ func ReadRouteConfigurationList(serviceName string) (*RouteConfigurationList, er
 				"httpStatus": response.Status,
 			},
 		).Error("An unexpected response code was received from the api gateway")
+		bodyCloseErr := response.Body.Close()
+		if bodyCloseErr != nil {
+			return nil, fmt.Errorf("error while closing response body: %w", bodyCloseErr)
+		}
 		return nil, ErrUnexpectedHttpCode
 	}
 }
@@ -160,12 +199,13 @@ func ReadServicePlugins(serviceName string) (*PluginList, error) {
 	}
 	// Make the request to the api gateway
 	response, err := http.Get(gatewayAPIURL + "/services/" + serviceName + "/plugins")
-	bodyCloseErr := response.Body.Close()
-	if bodyCloseErr != nil {
-		return nil, fmt.Errorf("error while closing response body: %w", bodyCloseErr)
-	}
+
 	if err != nil {
 		logger.WithError(err).Error("An error occurred while reading the routes from the service")
+		bodyCloseErr := response.Body.Close()
+		if bodyCloseErr != nil {
+			return nil, fmt.Errorf("error while closing response body: %w", bodyCloseErr)
+		}
 		return nil, wrapHttpClientError(err)
 	}
 
@@ -175,13 +215,21 @@ func ReadServicePlugins(serviceName string) (*PluginList, error) {
 		jsonDecodeError := json.NewDecoder(response.Body).Decode(pluginList)
 		if jsonDecodeError != nil {
 			logger.WithError(jsonDecodeError).Error("Unable to parse the response sent by the api gateway")
-			return nil, jsonDecodeError
+			bodyCloseErr := response.Body.Close()
+			if bodyCloseErr != nil {
+				return nil, fmt.Errorf("error while closing response body: %w", bodyCloseErr)
+			}
+			return nil, fmt.Errorf("unable to parse json: %w", jsonDecodeError)
 		}
 		return pluginList, nil
 	case 404:
 		logger.WithField("httpCode", response.StatusCode).Error(
 			"The supplied service name is not present in the api gateway",
 		)
+		bodyCloseErr := response.Body.Close()
+		if bodyCloseErr != nil {
+			return nil, fmt.Errorf("error while closing response body: %w", bodyCloseErr)
+		}
 		return nil, ErrResourceNotFound
 	default:
 		logger.WithFields(
@@ -190,6 +238,10 @@ func ReadServicePlugins(serviceName string) (*PluginList, error) {
 				"httpStatus": response.Status,
 			},
 		).Error("An unexpected response code was received from the api gateway")
+		bodyCloseErr := response.Body.Close()
+		if bodyCloseErr != nil {
+			return nil, fmt.Errorf("error while closing response body: %w", bodyCloseErr)
+		}
 		return nil, ErrUnexpectedHttpCode
 	}
 }
