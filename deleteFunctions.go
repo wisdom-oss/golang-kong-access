@@ -3,7 +3,6 @@ package golangkongaccess
 import (
 	"fmt"
 	"net/http"
-	"net/url"
 	"strings"
 )
 
@@ -17,10 +16,9 @@ func DeleteUpstreamTarget(targetAddress string, upstreamName string) (bool, erro
 	if strings.TrimSpace(upstreamName) == "" {
 		return false, ErrEmptyFunctionParameter
 	}
-	requestBody := url.Values{}
 	request, err := http.NewRequest(
-		"DELETE", gatewayAPIURL+"/services/"+upstreamName+"/targets/"+targetAddress,
-		strings.NewReader(requestBody.Encode()),
+		"DELETE", gatewayAPIURL+"/upstreams/"+upstreamName+"/targets/"+targetAddress,
+		nil,
 	)
 	if err != nil {
 		logger.WithError(err).Error("An error occurred while building the request to delete the target")
