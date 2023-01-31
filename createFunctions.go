@@ -25,6 +25,12 @@ func CreateNewUpstream(upstreamName string) (bool, error) {
 	// Build the request body for the upstream creation request
 	requestBody := url.Values{}
 	requestBody.Set("name", upstreamName)
+	requestBody.Set("healthchecks.active.http_path", "/ping")
+	requestBody.Set("healthchecks.active.timeout", "2")
+	requestBody.Add("healthchecks.active.http_statuses", "204")
+	requestBody.Set("healthchecks.active.concurrency", "2")
+	requestBody.Set("healthchecks.active.healthy.interval", "1")
+	requestBody.Set("healthchecks.active.unhealthy.interval", "1")
 	// Make the request to the gateway
 	response, err := http.PostForm(gatewayAPIURL+"/upstreams", requestBody)
 	// Close the response body since it is not being read by the function
@@ -166,6 +172,8 @@ func CreateNewRoute(serviceName string, path string) (bool, error) {
 	requestBody := url.Values{}
 	requestBody.Set("paths", path)
 	requestBody.Set("protocols", "http")
+	requestBody.Set("request_buffering", "false")
+	requestBody.Set("response_buffering", "false")
 
 	// Send the request to the api gateway
 	response, err := http.PostForm(gatewayAPIURL+"/services/"+serviceName+"/routes", requestBody)
